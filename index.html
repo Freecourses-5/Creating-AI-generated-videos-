@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Veo Studio — AI Video Generator</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><strong>✦ Veo Studio</strong><span>Gemini + Veo</span></header>
+<main>
+<section class="hero">
+  <div class="eyebrow">AI VIDEO GENERATOR</div>
+  <h1>أنشئ فيديو بالذكاء الاصطناعي</h1>
+  <p>اكتب فكرتك، اختر المقاس، ثم ابدأ إنشاء الفيديو باستخدام Veo.</p>
+</section>
+
+<section class="card">
+  <label for="prompt">وصف الفيديو</label>
+  <textarea id="prompt" placeholder="مثال: مدينة القاهرة ليلًا بعد المطر، لقطة سينمائية واقعية، حركة كاميرا بطيئة..."></textarea>
+
+  <div class="grid">
+    <div>
+      <label for="ratio">نسبة الفيديو</label>
+      <select id="ratio">
+        <option value="9:16">9:16 — عمودي</option>
+        <option value="16:9">16:9 — أفقي</option>
+      </select>
+    </div>
+    <div>
+      <label>النموذج</label>
+      <div class="readonly">Veo 3.1 Fast</div>
+    </div>
+  </div>
+
+  <label for="image">صورة مرجعية <small>(اختياري)</small></label>
+  <input id="image" type="file" accept="image/png,image/jpeg,image/webp">
+
+  <button id="generate">إنشاء الفيديو</button>
+  <div id="status"></div>
+
+  <section id="result" hidden>
+    <h2>🎬 الفيديو جاهز</h2>
+    <video id="video" controls playsinline></video>
+    <a id="download" class="download">تحميل الفيديو</a>
+  </section>
+</section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function fileToBase64(file){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(",")[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function api(url, options){
+  const response = await fetch(url, options);
+  let data = {};
+  try { data = await response.json(); } catch {}
+  if (!response.ok) throw new Error(data.error || "حدث خطأ في الخادم.");
+  return data;
+}
+
+$("generate").onclick = async () => {
+  const prompt = $("prompt").value.trim();
+  if (!prompt) {
+    $("status").textContent = "اكتب وصف الفيديو أولًا.";
+    return;
+  }
+
+  $("generate").disabled = true;
+  $("result").hidden = true;
+  $("status").textContent = "جاري بدء إنشاء الفيديو…";
+
+  try {
+    const body = {
+      action: "generate",
+      prompt,
+      aspectRatio: $("ratio").value
+    };
+
+    const file = $("image").files[0];
+    if (file) {
+      if (file.size > 3 * 1024 * 1024)
+        throw new Error("الصورة يجب ألا تتجاوز 3MB.");
+      body.imageBase64 = await fileToBase64(file);
+      body.mimeType = file.type;
+    }
+
+    const started = await api("/api?op=generate", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(body)
+    });
+
+    let operation = started.operationName;
+
+    while (true) {
+      await new Promise(r => setTimeout(r, 10000));
+      $("status").textContent = "Veo يقوم بإنشاء الفيديو…";
+
+      const state = await api("/api?op=status&operation=" + encodeURIComponent(operation));
+
+      if (state.status === "processing") continue;
+
+      if (state.status === "completed") {
+        const videoUrl = "/api?op=video&uri=" + encodeURIComponent(state.videoUri);
+        $("video").src = videoUrl;
+        $("download").href = videoUrl;
+        $("download").download = "ai-video.mp4";
+        $("result").hidden = false;
+        $("status").textContent = "تم إنشاء الفيديو بنجاح.";
+        break;
+      }
+
+      throw new Error(state.error || "فشل إنشاء الفيديو.");
+    }
+  } catch (error) {
+    $("status").textContent = "خطأ: " + error.message;
+  } finally {
+    $("generate").disabled = false;
+  }
+};
+</script>
+</body>
+</html>

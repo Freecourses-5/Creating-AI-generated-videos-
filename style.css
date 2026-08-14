@@ -1,0 +1,23 @@
+*{box-sizing:border-box}
+body{margin:0;background:#080a0f;color:#f4f6fa;font-family:Arial,Tahoma,sans-serif}
+header{height:68px;border-bottom:1px solid #252a34;padding:0 6%;display:flex;align-items:center;justify-content:space-between;color:#aab3c2}
+header strong{color:#fff;font-size:20px}
+main{width:min(900px,92%);margin:auto}
+.hero{text-align:center;padding:55px 0 30px}
+.eyebrow{font-size:12px;letter-spacing:2px;color:#8f99aa}
+h1{font-size:clamp(34px,7vw,58px);line-height:1.15;margin:15px 0}
+.hero p{color:#9ba5b5;font-size:16px}
+.card{background:#11141b;border:1px solid #292f3a;border-radius:22px;padding:26px;margin-bottom:50px}
+label{display:block;font-weight:700;margin:0 0 9px}
+small{color:#7f8999;font-weight:400}
+textarea,select,input,.readonly{width:100%;background:#090c12;border:1px solid #2b313d;border-radius:12px;color:#fff;padding:14px;font-size:15px}
+textarea{min-height:170px;resize:vertical;line-height:1.7}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:18px 0}
+.readonly{color:#c2c9d5}
+input{margin-bottom:20px}
+button,.download{display:block;width:100%;padding:15px;border:0;border-radius:12px;background:#fff;color:#080a0f;font-weight:800;font-size:16px;text-align:center;text-decoration:none;cursor:pointer}
+button:disabled{opacity:.5}
+#status{min-height:25px;text-align:center;color:#b8c1d0;padding:15px 0}
+video{display:block;width:100%;margin-top:12px;border-radius:15px;background:#000;max-height:650px}
+.download{margin-top:10px}
+@media(max-width:650px){.grid{grid-template-columns:1fr}.card{padding:18px}.hero{padding-top:35px}}
